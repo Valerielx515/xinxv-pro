@@ -2436,7 +2436,7 @@
                 <div class="hero">
                     <div class="header-mark">Mind Agent</div>
                     <h1 class="display" id="homeTitle">先聊聊吧</h1>
-                    <p class="subtle" id="homeSubtitle">免费基础陪伴先打开入口，低价专业服务再接住更深层的需要。</p>
+                    <p class="subtle" id="homeSubtitle">从情绪陪伴到深度评估，陪你走过每一步。</p>
                     <div class="grid-two" style="margin-top:16px;" id="homeCards"></div>
                 </div>
                 <div class="hint-panel" style="margin-bottom:18px;">
@@ -2486,16 +2486,16 @@
                     <article class="menu-item list-card" data-open-screen="history"><div class="split"><div class="top-entity"><div class="icon-box">历</div><div><h3 class="item-title">历史对话</h3><p class="desc">查看聊天明细、继续对话。</p></div></div><div class="status-badge">查看</div></div></article>
                     <article class="menu-item list-card vip" data-open-screen="consult"><div class="split"><div class="top-entity"><div class="icon-box vip">医</div><div><h3 class="item-title">心理咨询</h3><p class="desc">合作医院、值班医生、预约入口。</p></div></div><div class="status-badge vip" id="consultMenuBadge">付费</div></div></article>
                     <article class="menu-item list-card" data-open-screen="agents"><div class="split"><div class="top-entity"><div class="icon-box">伴</div><div><h3 class="item-title">我的智能体</h3><p class="desc">基础免费，联动付费，自建免费。</p></div></div><div class="status-badge">分层</div></div></article>
-                    <article class="menu-item list-card vip" data-open-screen="reports">
+                    <article class="menu-item list-card" data-open-screen="reports">
                         <div class="split">
                             <div class="top-entity">
-                                <div class="icon-box vip">报</div>
+                                <div class="icon-box">报</div>
                                 <div>
                                     <h3 class="item-title">我的报告</h3>
-                                    <p class="desc">查看历史心理报告、声纹与微表情分析。</p>
+                                    <p class="desc" id="reportsMenuDesc">查看历史心理报告、对话深度分析。</p>
                                 </div>
                             </div>
-                            <div class="status-badge vip clickable" id="reportsMenuBadge">付费</div>
+                            <div class="status-badge" id="reportsMenuBadge">查看</div>
                         </div>
                     </article>
                     <article class="menu-item list-card vip" data-open-screen="service"><div class="split"><div class="top-entity"><div class="icon-box vip">卡</div><div><h3 class="item-title">购买服务</h3><p class="desc">会员方案、单次测评、权益对比。</p></div></div><div class="status-badge vip" id="serviceMenuBadge">升级</div></div></article>
@@ -2610,7 +2610,8 @@
             <div class="scroll-content">
                 <div class="card"><h3 class="section-title" style="margin-bottom:6px;">服务解锁方式</h3><p class="desc">不想买整月VIP的用户，可先按套付费做单项测评；需要完整陪伴和长期档案时，再直接开通会员。</p></div>
                 <div id="testListAnchor"></div>
-                <div class="section"><div class="section-head"><h3 class="section-title">单次测评（标准化量表）</h3><div class="section-note">一次生效</div></div><div class="card-list" id="testList"></div></div>
+                <div id="freeTestQuotaHint"></div>
+                <div class="section"><div class="section-head"><h3 class="section-title">单次测评（标准化量表）</h3><div class="section-note" style="display:flex;gap:10px;align-items:center;">一次生效 <a style="color:var(--theme-avatar-color, #597363);cursor:pointer;text-decoration:underline;font-size:12px;" onclick="window.__openScreen('reports');window.__setReportFilter('single');">查看历史结果 →</a></div></div><div class="card-list" id="testList"></div></div>
                 <!-- 会员方案锚点 -->
                 <div id="membershipPlansAnchor"></div>
                 <div id="planSectionWrap"><div class="section"><div class="section-head"><h3 class="section-title">会员方案</h3><div class="section-note">推荐季卡</div></div><div class="card-list" id="planList"></div></div>
@@ -3916,6 +3917,8 @@
             selectedTestId: "",
             memberPlanId: IS_VIP_DEMO ? "year" : "",
             memberDays: IS_VIP_DEMO ? 365 : 0,
+            freeTestUsed: 0,
+            freeTestHistory: [],
             orders: IS_VIP_DEMO ? [{ id: "vip-seeded-order", type: "member", name: "年卡", price: 299,
                 note: "年卡已开通，完整版权益全部可用。", time: fmtTime(Date.now() - 7200000) }] : [],
             micAllowed: false,
@@ -3960,7 +3963,7 @@
                 score: 76,
                 summary: '本月用户情绪整体呈现先抑后扬趋势。月初因工作压力导致焦虑情绪明显，中旬通过规律作息和社交活动逐步改善，月末情绪趋于稳定。建议继续保持良好的社交节奏，适当增加户外活动。',
                 linkedTests: '3份单次测评报告（GAD-7、PHQ-9、PSQI）',
-                dialogCount: '28段关键对话片段',
+                dialogCount: '3段关键对话片段',
                 details: {
                     monthlyTrend: '本月整体情绪呈上升趋势。月初焦虑指数7/10，中旬回落至5/10，月末稳定在4/10。用户表达了对职业发展的焦虑，同时对亲密关系有深层需求。',
                     keyEvents: '8月5日用户表达工作压力大，8月12日提及睡眠问题，8月20日情绪明显好转，8月28日分享了对未来规划的积极思考。',
@@ -3995,40 +3998,10 @@
                     context: '结合前一日(8月2日)用户曾提及"明天要交PPT但还没做完"，可以判断本次失眠的直接诱因为工作截止期限压力。用户自我觉察能力较好，但尚未掌握有效的睡眠认知行为疗法(CBT-I)技巧。此时判断：用户处于轻度应激反应的早期阶段，需要从睡眠卫生教育和降低睡前认知唤醒两个方向进行干预。'
                 },
                 { 
-                    date: '2026-08-05 14:22', 
-                    user: '最近工作压力好大，感觉快撑不住了，每天都有做不完的事。', 
-                    aiAnalysis: '本段对话采集于工作日下午，用户使用了"撑不住"这一高强度负面词汇，远超普通压力表达。AI从语义情感分析中识别出：(1) "快撑不住了"属于灾难化语言模式，提示压力感知已逼近主观承受极限；(2) "每天都有做不完的事"体现了习得性无助的雏形——用户将压力来源泛化为"无穷无尽"的状态；(3) 句末省略号式表达暗示用户省略了更深的情绪内容，可能是尴尬或不愿直面脆弱。AI同时分析该消息发送频率，发现用户在6分钟内连续发送了3条相似内容的消息（均被合并展示），这种多连发行为是情绪急迫性的典型表现。',
-                    context: '回溯上下文：8月3日用户描述了失眠问题，8月4日用户提到"午饭都没时间吃"，8月5日出现本条"撑不住"表达。三天内压力信号持续升级。AI判定用户正处于"职业倦怠(Burnout)前驱期"，核心症状为情感耗竭。此判断基于Maslach职业倦怠量表(MBI)的情感耗竭分量表维度的行为学对应特征。此时建议优先进行压力源具体化引导（让用户明确到底"哪些事"做不完），而非泛泛安慰。'
-                },
-                { 
-                    date: '2026-08-08 23:48', 
-                    user: '我昨晚又失眠了，脑子里全是工作的事，翻来覆去到凌晨三点。', 
-                    aiAnalysis: '深夜23:48发送的消息具有极高的临床参考价值。AI分析要点：(1) 深夜发送本身提示昼夜节律紊乱，用户在本应准备入睡的时间仍在与AI交互，说明已形成"床上使用手机"的不良睡眠卫生习惯；(2) "凌晨三点"是精确时间锚定，这种具体化是焦虑的认知标记——用户在失眠时刻意看表并记忆精确时间，这种行为本身（时钟监测）是失眠维持因素之一；(3) "脑子里全是工作的事"提示侵入性思维已严重损害睡眠质量。AI检测到用户语音中呼吸频率增快（从基线12-14次/分增至18次/分），语调中的颤音成分增加约23%。',
-                    context: '此前的5天内用户连续提及失眠(8/3、8/8)，且严重程度从"睡不着"升级为"到凌晨三点"。结合同期PHQ-9测评中第3题（睡眠障碍）自评3分、GAD-7总分17分，确认用户处于"焦虑-失眠"恶性循环中。AI判断：当前用户已进入慢性失眠的诊断临界范围(满足DSM-5中失眠障碍的频率标准：每周≥3次，持续超过1个月的前兆)，需建议建立严格的睡眠限制疗法。'
-                },
-                { 
                     date: '2026-08-12 16:05', 
                     user: '今天开周会的时候手都在抖，话筒差点拿不稳，我觉得自己快崩溃了。', 
                     aiAnalysis: '这是本月最具临床警示意义的一次对话。AI进行分析：(1) "手都在抖"为躯体化症状的首次自述报告，提示焦虑已从心理层面转化为自主神经系统功能紊乱——交感神经过度激活导致骨骼肌震颤；(2) "话筒差点拿不稳"是社会情境下的躯体症状披露，暗示症状已影响职场功能和社会表现；(3) "快崩溃了"是危机信号词，AI系统自动触发风险评估模块，通过追问确证用户无自伤意图后解除高危预警。该段对话中的声纹数据显示：语速从基线120字/分骤增至165字/分，停顿次数从正常的3-4次/句增至11次/句。',
                     context: '8月12日恰好也是用户GAD-7测评日。测评得分17分（重度焦虑）与本段对话的躯体化症状高度吻合，形成"量表+行为"双重验证。AI在此时做出了一个关键判断：用户的焦虑已处于需要专业临床干预的程度，单纯的AI陪伴式对话已不足以应对，建议将精神科或心理咨询师转诊作为优先选项。同时，AI也观察到用户尽管处于高度痛苦中，仍能完成工作场景中的基本任务（"开周会"），提示社会功能尚未完全失能，这是预后良好的积极信号。'
-                },
-                { 
-                    date: '2026-08-16 10:38', 
-                    user: '周末和朋友出去走了走，去郊外爬山了，感觉稍微好一点了，回来之后好像也没那么累了。', 
-                    aiAnalysis: '这是本月首次出现的显著正向转折点。AI进行多维度分析：(1) 时间维度上，8月16日是周六，用户主动安排了户外社交活动，行为激活(Behavioral Activation)的自然发生是最佳的心理康复信号；(2) 社交维度上，"和朋友"说明用户的社会支持系统仍然完好并能主动调用；(3) 生理维度上，爬山属于中等强度有氧运动，已知可促进脑源性神经营养因子(BDNF)分泌并降低皮质醇水平，这与用户自述的"没那么累了"在神经生物学层面高度一致；(4) "稍微好一点"中的"稍微"一词反映了用户谨慎乐观的态度，符合焦虑症患者康复期的典型心理特征——不敢过于乐观，但这种"谨慎的好转"恰恰是真实好转而非否认式伪装。',
-                    context: '此前4次对话均呈负面情绪螺旋(失眠→压力→躯体化)，8月16日是本月的第一次积极拐点。AI判断：用户具备自发的行为激活能力，这是预防焦虑慢性化的关键保护因素。建议强化这一积极行为：将"每周爬山"固定为行为承诺(behavioral commitment)，利用执行意向(implementation intention)策略提高行为持续性。同时注意用户对"好转"的谨慎表述，给予充分的正向反馈(positive reinforcement)以巩固这一转变。'
-                },
-                { 
-                    date: '2026-08-20 11:12', 
-                    user: '今天终于把那个大项目交付了，客户挺满意的，老板也表扬了我，感觉这一个月的辛苦没白费。', 
-                    aiAnalysis: 'AI分析了本段对话的多个积极信号：(1) "终于"一词暗示了这一成就来之不易，与之前数周的煎熬形成强烈对比，成就感因此被放大；(2) "客户挺满意"和"老板也表扬"构成双重社会认同——外部权威的正向反馈是自尊恢复的强大催化剂，这种来自多源头的认可降低了单一来源评价（如自我批评）的权重；(3) "辛苦没白费"是认知重构(cognitive reframing)的自发表达，用户开始将之前的痛苦重新定义为"有意义的过程"而非"无意义的折磨"，这是心理弹性(Resilience)的核心机制之一。语音分析显示语调中出现了近两周来的首个"微笑音"(smile prosody)，基频(F0)波动范围收窄至正常区间。',
-                    context: '从8月5日的"撑不住"到8月20日的"没白费"，用户完成了从"情绪低谷→积极重建"的完整情绪周期(约15天)。这表明用户的情绪调节系统仍然健康——尽管反应幅度较大(情绪起伏剧烈)，但恢复速度正常。AI判断：用户属于"高反应性-中等恢复力"的情绪类型，这意味着在遇到压力时会有较强烈的情绪反应，但具备从中恢复的心理资源。建议在未来的高风险期(如新项目启动日)进行预防性心理储蓄：提前安排社交活动和运动计划。'
-                },
-                { 
-                    date: '2026-08-24 20:45', 
-                    user: '我好像慢慢适应了这种节奏，虽然还是忙，但不那么慌乱了。之前真的是自己把自己吓到了。', 
-                    aiAnalysis: '此段对话体现了重要的元认知进步。AI深度分析：(1) "慢慢适应了这种节奏"表明用户已从被动承受转为主动接纳，完成了压力应对策略从情绪聚焦(emotion-focused)到问题聚焦(problem-focused)的转换；(2) "不那么慌乱了"中的"慌乱"一词精准对应了此前8月12日的"手抖"状态，用户用比较级进行自我状态校准，说明自知力(insight)提升；(3) "自己把自己吓到了"是本次对话最重要的认知飞跃——用户完成了焦虑的"再归因"(reattribution)，将痛苦从"我无法承受工作"重构为"我高估了威胁"，这一认知转变是认知行为疗法(CBT)的经典疗效指标。AI检测到用户此时发送消息的节奏明显放缓，打字速度从压力期的约80字/分恢复至正常的40-50字/分。',
-                    context: '用户在不到一个月的时间内自行完成了"应激-应对-反思"的心理过程，展现了超出预期的心理弹性。AI判断：用户的核心问题是情境性焦虑(situational anxiety)而非特质性焦虑(trait anxiety)，即焦虑反应有明确的诱因(工作压力)，压力解除后情绪能自然回落。这一判断对未来干预方向至关重要——重点是帮助用户建立压力预见机制和前置应对策略，而非治疗长期焦虑障碍。'
                 },
                 { 
                     date: '2026-08-28 19:30', 
@@ -4075,9 +4048,6 @@
                 { date: '2026-08-24 15:30', user: '下午和朋友打了电话，聊了聊近况，她最近也在换工作，感觉大家都挺不容易的。', 
                   aiAnalysis: 'AI分析了此对话中的多重积极因素：(1) 主动电话联系替代文字聊天，说明社交投入程度较高；(2) "聊了聊近况"为双向交流，既有倾诉也有倾听——倾听是社交支持中最被低估的成分，它让用户从自身问题中暂时抽离；(3) "大家都挺不容易的"体现了"普遍化"(universalization)认知策略——发现自己不是唯一面临困难的人，这种社会比较(social comparison)有助于降低孤独感和病耻感。AI检测到对话后的用户活跃度明显提升。', 
                   context: '结合2天前的"低动力"状态，用户在未接受任何干预的情况下自然选择了社交作为情绪调节策略——这是健康心理系统的自发修复行为。与月度报告中的8月16日类似，社交始终是用户最有效且最自然的应对策略。' },
-                { date: '2026-08-26 22:10', user: '晚上还是睡不太好，入睡大概要一个小时，但白天精神还行，可能是习惯了。', 
-                  aiAnalysis: '睡眠问题持续但未恶化。AI分析：(1) "入睡要一个小时"属于入睡延迟型失眠(sleep-onset insomnia)，时间超过30分钟即为异常，1小时属于中度延迟；(2) "白天精神还行"是关键的积极指标——日间功能(functional impairment)是否受损是区分临床失眠与亚临床失眠的重要界限，用户目前的日间功能尚可，提示失眠尚未达到严重程度；(3) "可能是习惯了"中透露出适应性自嘲——"习惯"一词既有无奈也有接纳，这种态度可防止失眠焦虑本身(对失眠的焦虑)恶化失眠，即防止了"失眠恐惧→失眠加重"的恶性循环。', 
-                  context: '比较月度报告中的8月8日深夜失眠(当时伴随强烈负面情绪)，本次失眠表述的焦虑感明显降低。用户对失眠的态度从"我好痛苦"转变为"我知道这是个问题，但还能应付"，这一态度转变本身具有治疗价值——失眠认知行为疗法(CBT-I)的核心之一正是降低对失眠的灾难化认知。' },
                 { date: '2026-08-27 18:55', user: '我发现每天晚饭后散步20分钟能让我放松一些，今天还看到一只橘猫在晒太阳。', 
                   aiAnalysis: '用户发现了自我调节的有效方法并形成规律。AI分析：(1) "每天散步20分钟"说明行为已初步习惯化(habit formation)，每日执行提升了行为持续性；(2) "发现"一词暗示这是自主探索的结果而非外部指令，自我发现的行为比他人建议的行为有更高的内在动机(intrinsic motivation)和依从率；(3) "看到一只橘猫在晒太阳"是最值得注意的细节——用户开始注意并分享生活中微小美好的事物，这是正念(mindfulness)能力的自发觉醒，更是抑郁消退的明确信号——抑郁的人通常注意不到日常中的美好。AI将此记为"橘猫指标"：美好细节的关注度是情绪状态的非语言晴雨表。', 
                   context: '8月22日-8月27日的5天内，用户从"低动力-无聊"到"主动散步-发现美好"，完成了微型情绪周期。AI判断：用户具备极强的自我调节能力，核心需求不是"被治愈"而是"被看见和被肯定"——用户需要AI确认自己的恢复过程是真实的、有意义的。' }
@@ -4108,7 +4078,7 @@
                 score: 76,
                 summary: '本月用户情绪整体呈现先抑后扬的V形反弹趋势。月初因项目截止压力导致焦虑水平急剧升高(峰值8月12日)，伴随失眠和躯体化症状；中旬通过行为激活(户外运动+社交)开始出现积极转折；下旬随着项目交付，情绪完全恢复并超出基线水平，月底出现显著的前瞻性积极规划行为。综合评估：用户具备良好的心理弹性与自我修复能力，核心问题为情境性焦虑而非特质性焦虑。',
                 linkedTests: 'GAD-7(8月7日)、PHQ-9(8月14日)、PSQI(8月21日)共3份单次测评报告',
-                dialogCount: '8段核心对话（涵盖月初低谷至月末回升的完整情绪周期）',
+                dialogCount: '3段核心对话（涵盖月初低谷至月末回升的完整情绪周期）',
                 dialogAnalysis: dialogAnalysisMonthly,
                 voiceAnalysis: voiceAnalysisMonthly,
                 faceAnalysis: faceAnalysisMonthly,
@@ -4129,7 +4099,7 @@
                 summary: '基于近7天内对话记录、语音特征与面部微表情数据分析，用户当前情绪状态处于"稳步恢复→积极展望"阶段。虽然8月22日存在"成就后空虚期"(post-achievement void)，但用户在2天内即通过社交和运动自发完成了情绪修复。8月27日的"橘猫时刻"(注意到生活中的微小美好)是情绪完全恢复的可靠标记。整体建议：保持当前节奏，将"每日散步"固化为固定习惯。',
                 days: '7',
                 linkedTests: 'GAD-7(8/7)、PHQ-9(8/14)共2份近期测评',
-                dialogCount: '4段近7天核心对话',
+                dialogCount: '3段近7天核心对话',
                 dialogAnalysis: dialogAnalysisInstant,
                 voiceAnalysis: voiceAnalysisInstant,
                 faceAnalysis: faceAnalysisInstant,
@@ -4423,7 +4393,7 @@
                         `linear-gradient(180deg, ${defaultTheme['--theme-bg-start']}, ${defaultTheme['--theme-bg-end']})`;
                 }
                 titleEl.textContent = '先聊聊吧';
-                subtitleEl.textContent = '免费基础陪伴先打开入口，低价专业服务再接住更深层的需要。';
+                subtitleEl.textContent = '从情绪陪伴到深度评估，陪你走过每一步。';
                 container.innerHTML = '';
                 if (themeAnimationInterval) { clearInterval(themeAnimationInterval);
                     themeAnimationInterval = null; }
@@ -4813,14 +4783,24 @@
             if (vip) {
                 container.innerHTML = `
                     <div class="card" style="border-color:var(--theme-primary, var(--sage));"><div class="metric-label"> 当前会员</div><div class="metric-value" style="color:var(--theme-primary, var(--sage-deep));">${state.memberPlanId ? plans.find(p=>p.id===state.memberPlanId)?.name || '会员' : '年卡'}</div><div class="desc" style="font-size:11px;">  全部功能已解锁，畅享深度陪伴</div></div>
-                    <div class="card" style="border-color:var(--gold);"><div class="metric-label"> 剩余天数</div><div class="metric-value" style="color:var(--gold-deep);">${state.memberDays || 365}</div><div class="desc" style="font-size:11px;">  天</div></div>
+                    <div class="card" style="border-color:var(--gold);"><div class="metric-label"> 剩余天数</div><div class="metric-value" style="color:var(--gold-deep);">${state.memberDays || 365}天</div><div class="desc" style="font-size:11px;">  当前为会员有效期内</div></div>
                 `;
             } else {
                 container.innerHTML = `
-                    <div class="card"><div class="metric-label"> 基础陪伴</div><div class="metric-value">免费</div><div class="desc" style="font-size:11px;">  文字聊天、情绪安抚、浅层引导。</div></div>
-                    <div class="card"><div class="metric-label"> 专业升级</div><div class="metric-value">低价</div><div class="desc" style="font-size:11px;">  单次测评或会员解锁完整能力。</div></div>
+                    <div class="card"><div class="metric-label"> 情绪陪伴</div><div class="metric-value">文字聊天</div><div class="desc" style="font-size:11px;"> 即时安抚、思路梳理、压力承接。</div></div>
+                    <div class="card"><div class="metric-label"> 深度评估</div><div class="metric-value">专业量表</div><div class="desc" style="font-size:11px;"> 标准化测评、对话洞察、状态报告。</div></div>
                 `;
             }
+            // 自动续费权益提示
+            let renewal = document.getElementById('homeRenewalNote');
+            if (!renewal) {
+                renewal = document.createElement('div');
+                renewal.id = 'homeRenewalNote';
+                renewal.style.cssText = 'margin-top:10px;padding:10px 12px;background:rgba(193,149,111,0.08);border-radius:10px;border:1px solid rgba(193,149,111,0.25);font-size:11px;color:var(--gold-deep, #8a664b);line-height:1.6;';
+                container.parentNode && container.parentNode.insertBefore(renewal, container.nextSibling);
+            }
+            renewal.innerHTML = `<p style="margin:0;">🔄 <strong>自动续费权益</strong>：开通会员即享专属价，到期自动续费，可随时取消。开通后所有心理量表、专业智能体、深度报告、声纹与微表情分析<strong>不限次</strong>使用。</p>`;
+            renewal.style.display = vip ? '' : 'none';
         }
 
         
@@ -4934,8 +4914,23 @@
 
             const micOk = state.micAllowed;
             const camOk = state.cameraAllowed;
+            const vip = isVip();
             let permissionHtml = '';
-            if (!micOk || !camOk) {
+            if (!vip) {
+                permissionHtml = `
+                    <div class="card" style="padding:14px 16px;margin-bottom:14px;background:rgba(193,149,111,0.08);border-color:rgba(193,149,111,0.25);">
+                        <div style="display:flex;align-items:flex-start;gap:10px;">
+                            <span style="font-size:20px;">🔒</span>
+                            <div style="flex:1;">
+                                <p style="font-size:13px;font-weight:600;margin:0 0 4px;">声纹与微表情分析属于付费会员功能</p>
+                                <p style="font-size:11px;color:var(--theme-text-soft, var(--ink-soft));margin:0 0 6px;">免费版可查看基于对话的文字报告；包含声纹波动、面部微表情的完整版报告需开通会员解锁。</p>
+                                <p style="font-size:11px;color:var(--theme-text-soft, var(--ink-soft));margin:0 0 8px;">麦克风、摄像头权限仅在付费版本中开启采集，基础版不调用相应硬件。</p>
+                                <button class="small-btn vip" onclick="window.__openServiceWithAnchor()">解锁完整版</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (!micOk || !camOk) {
                 permissionHtml = `
                     <div class="card" style="text-align:center;padding:14px 16px;margin-bottom:14px;background:rgba(255,200,0,0.06);border-color:rgba(255,200,0,0.2);">
                         <div style="font-size:20px;margin-bottom:4px;">⚠️</div>
@@ -5007,6 +5002,7 @@
             if (!report) { showToast('报告不存在'); return; }
             const micOk = state.micAllowed;
             const camOk = state.cameraAllowed;
+            const vip = isVip();
             const wrap = document.getElementById('reportDetailWrap');
             const voiceStatus = micOk ? '✅ 已分析（声纹特征稳定，语调平缓）' : '❌ 未授权，无法采集声纹';
             const faceStatus = camOk ? '✅ 已分析（微表情自然，无明显紧张）' : '❌ 未授权，无法采集微表情';
@@ -5088,6 +5084,19 @@
                     `;
                 }
                 if (report.voiceAnalysis) {
+                    if (!vip) {
+                        voiceFaceHtml += `
+                            <div class="detail-block">
+                                <h4 class="section-title">🔊 声纹分析</h4>
+                                <div style="border:1px dashed var(--theme-border, rgba(118,110,96,0.30));border-radius:12px;padding:20px;text-align:center;background:rgba(193,149,111,0.04);">
+                                    <div style="font-size:28px;margin-bottom:6px;">🔒</div>
+                                    <p style="font-size:13px;font-weight:600;margin:0 0 4px;">声纹分析属于付费会员功能</p>
+                                    <p style="font-size:11px;color:var(--theme-text-soft, var(--ink-soft));margin:0 0 10px;">基础麦克风权限仅付费版开启，无法采集与分析声纹特征。</p>
+                                    <button class="small-btn vip" onclick="window.__openServiceWithAnchor()">解锁完整版</button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
                     let voiceDetailHtml = (report.voiceAnalysis.details || []).map(d => `
                         <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--theme-border, rgba(118,110,96,0.08));align-items:flex-start;">
                             <span style="background:rgba(120,151,133,0.10);color:var(--theme-avatar-color, #597363);padding:2px 8px;border-radius:8px;font-size:10px;white-space:nowrap;">${escHtml(d.time)}</span>
@@ -5100,13 +5109,15 @@
                     voiceFaceHtml += `
                         <div class="detail-block">
                             <h4 class="section-title">🔊 声纹分析</h4>
+                            <div style="padding:12px 14px;background:rgba(193,149,111,0.10);border-radius:10px;margin-bottom:14px;border:1px solid rgba(193,149,111,0.25);">
+                                <p style="font-size:12px;margin:0;color:var(--gold-deep, #8a664b);line-height:1.6;">⏰ <strong>本次查看说明</strong>：声纹与微表情采集需从开通后下一采集周期开始生效。本次查看为开通前已采集的样本数据，仅供参考。下一周期将采集完整声纹与微表情数据。</p>
+                            </div>
                             <p class="desc" style="font-size:12px;margin-bottom:12px;color:var(--ink);">${escHtml(report.voiceAnalysis.summary||'')}</p>
                             <div style="border:2px dashed var(--theme-border, rgba(118,110,96,0.30));border-radius:12px;padding:20px;text-align:center;margin-bottom:14px;background:rgba(120,151,133,0.03);">
                                 <div style="font-size:14px;color:var(--theme-text-soft, var(--ink-soft));margin-bottom:8px;">【声纹波动频谱图】</div>
                                 <div style="width:100%;height:160px;background:linear-gradient(180deg, rgba(120,151,133,0.03), rgba(193,149,111,0.03));border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
                                     <span style="font-size:24px;color:var(--theme-text-soft, var(--ink-soft));opacity:0.5;">📊</span>
                                     <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--theme-text-soft, var(--ink-soft));background:rgba(255,255,255,0.7);padding:2px 10px;border-radius:6px;">（采集样本 ·  声纹波形对比）</div>
-                                    <!-- 模拟标注：频段分区 -->
                                     <div style="position:absolute;left:8px;top:10px;font-size:9px;color:rgba(120,151,133,0.5);">基频F0</div>
                                     <div style="position:absolute;right:8px;top:35px;font-size:9px;color:rgba(193,149,111,0.5);">共振峰F1-F3</div>
                                     <div style="position:absolute;left:12px;bottom:30px;font-size:9px;color:rgba(120,151,133,0.5);">能量谱</div>
@@ -5117,8 +5128,22 @@
                             ${voiceDetailHtml}
                         </div>
                     `;
+                    }
                 }
                 if (report.faceAnalysis) {
+                    if (!vip) {
+                        voiceFaceHtml += `
+                            <div class="detail-block">
+                                <h4 class="section-title">😊 微表情分析</h4>
+                                <div style="border:1px dashed var(--theme-border, rgba(118,110,96,0.30));border-radius:12px;padding:20px;text-align:center;background:rgba(193,149,111,0.04);">
+                                    <div style="font-size:28px;margin-bottom:6px;">🔒</div>
+                                    <p style="font-size:13px;font-weight:600;margin:0 0 4px;">微表情分析属于付费会员功能</p>
+                                    <p style="font-size:11px;color:var(--theme-text-soft, var(--ink-soft));margin:0 0 10px;">基础摄像头权限仅付费版开启，无法采集面部视频进行分析。</p>
+                                    <button class="small-btn vip" onclick="window.__openServiceWithAnchor()">解锁完整版</button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
                     let faceDetailHtml = (report.faceAnalysis.details || []).map(d => `
                         <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--theme-border, rgba(118,110,96,0.08));align-items:flex-start;">
                             <span style="background:rgba(193,149,111,0.10);color:var(--gold-deep, #8a664b);padding:2px 8px;border-radius:8px;font-size:10px;white-space:nowrap;">${escHtml(d.time)}</span>
@@ -5131,13 +5156,15 @@
                     voiceFaceHtml += `
                         <div class="detail-block">
                             <h4 class="section-title">😊 微表情分析</h4>
+                            <div style="padding:12px 14px;background:rgba(193,149,111,0.10);border-radius:10px;margin-bottom:14px;border:1px solid rgba(193,149,111,0.25);">
+                                <p style="font-size:12px;margin:0;color:var(--gold-deep, #8a664b);line-height:1.6;">⏰ <strong>本次查看说明</strong>：声纹与微表情采集需从开通后下一采集周期开始生效。本次查看为开通前已采集的样本数据，仅供参考。下一周期将采集完整面部视频并生成微表情 FACS 编码。</p>
+                            </div>
                             <p class="desc" style="font-size:12px;margin-bottom:12px;color:var(--ink);">${escHtml(report.faceAnalysis.summary||'')}</p>
                             <div style="border:2px dashed var(--theme-border, rgba(118,110,96,0.30));border-radius:12px;padding:20px;text-align:center;margin-bottom:14px;background:rgba(193,149,111,0.03);">
                                 <div style="font-size:14px;color:var(--theme-text-soft, var(--ink-soft));margin-bottom:8px;">【面部微表情关键帧分析图】</div>
                                 <div style="width:100%;height:160px;background:linear-gradient(180deg, rgba(193,149,111,0.03), rgba(120,151,133,0.03));border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
                                     <span style="font-size:24px;color:var(--theme-text-soft, var(--ink-soft));opacity:0.5;">😶</span>
                                     <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--theme-text-soft, var(--ink-soft));background:rgba(255,255,255,0.7);padding:2px 10px;border-radius:6px;">（采集样本 · AU  动作单元标记）</div>
-                                    <!-- 模拟标注：面部AU区域 -->
                                     <div style="position:absolute;left:10px;top:12px;font-size:9px;color:rgba(193,149,111,0.5);">AU4 降眉肌</div>
                                     <div style="position:absolute;right:10px;top:12px;font-size:9px;color:rgba(193,149,111,0.5);">AU6 眼轮匝肌</div>
                                     <div style="position:absolute;left:10px;bottom:30px;font-size:9px;color:rgba(120,151,133,0.5);">AU12 颧大肌</div>
@@ -5149,6 +5176,7 @@
                             ${faceDetailHtml}
                         </div>
                     `;
+                    }
                 }
                 if (report.details && report.details.recommendation) {
                     extraHtml += `
@@ -5320,6 +5348,7 @@
             }
 
             const reportsMenu = document.getElementById('reportsMenuBadge');
+            const reportsDesc = document.getElementById('reportsMenuDesc');
             if (reportsMenu) {
                 if (vip) {
                     reportsMenu.textContent = '查看';
@@ -5331,13 +5360,18 @@
                         }
                         openPage('reports');
                     };
+                    if (reportsDesc) reportsDesc.textContent = '查看历史心理报告、声纹与微表情分析。';
                 } else {
-                    reportsMenu.textContent = '付费';
-                    reportsMenu.className = 'status-badge vip clickable';
+                    reportsMenu.textContent = '分层';
+                    reportsMenu.className = 'status-badge active';
                     reportsMenu.onclick = function(e) {
                         e.stopPropagation();
-                        window.__openServiceWithAnchor();
+                        if (!state.reports || state.reports.length === 0) {
+                            initReportsForVip();
+                        }
+                        openPage('reports');
                     };
+                    if (reportsDesc) reportsDesc.textContent = '查看历史心理报告、对话深度分析。';
                 }
             }
 
@@ -5515,7 +5549,6 @@
                 appendBubble("ai", reply);
                 saveState();
                 renderHistory();
-                showVipRequiredModal("专业测评");
             } else { const reply = buildReply(content);
                 state.history[0].transcript.push({ role: "ai", text: reply, ts: Date.now() });
                 appendBubble("ai", reply);
@@ -5964,21 +5997,40 @@
         
         function renderTests() {
             const vip = isVip();
+            const usedCount = state.freeTestUsed || 0;
+            const remaining = Math.max(0, 2 - usedCount);
             document.getElementById("testList").innerHTML = tests.map(item => {
                 const sel = state.selectedTestId === item.id ? "selected-card" : "";
-                const locked = !vip;
-                const btnText = locked ? '🔒 需解锁' : '立即测评';
+                const locked = !vip && remaining <= 0;
+                const btnText = vip ? '立即测评' : (remaining > 0 ? `免费测评 (剩${remaining}/2)` : '🔒 次数已用完');
                 const btnClass = locked ? 'small-btn locked' : 'small-btn primary';
                 const onClick = locked ? `window.__openServiceWithAnchor()` :
                     `window.__startQuiz('${item.quizId}')`;
-                const cardOnClick = vip ? `window.__startQuiz('${item.quizId}')` : onClick;
+                const cardOnClick = locked ? `window.__openServiceWithAnchor()` : `window.__startQuiz('${item.quizId}')`;
                 const priceBlock = vip
                     ? `<div class="price-line"><strong style="color:#597363;">¥0</strong><span style="text-decoration:line-through;color:var(--theme-text-soft, var(--ink-soft));margin-left:6px;">¥${item.price}</span><span style="margin-left:4px;color:#597363;font-weight:700;">会员免费</span></div>`
-                    : `<div class="price-line"><strong>¥${item.price}</strong><span>/ 套</span></div>`;
+                    : (remaining > 0
+                        ? `<div class="price-line"><strong style="color:#597363;">免费</strong><span style="margin-left:4px;color:var(--theme-text-soft, var(--ink-soft));font-size:12px;">（已用 ${usedCount}/2 次）</span></div>`
+                        : `<div class="price-line"><strong>¥${item.price}</strong><span>/ 套</span></div>`);
+                const statusText = vip ? '已解锁' : (remaining > 0 ? `免费 ${remaining}/2` : '需购买');
                 return `
-                <article class="list-card vip ${sel}" onclick="${cardOnClick}"><div class="split" style="align-items:flex-start;"><div><h3 class="item-title">${escHtml(item.name)} ${locked ? '🔒' : '✅'}</h3><p class="desc">${escHtml(item.desc)}</p></div><div class="status-badge ${vip?'active':'vip'}">${locked ? '需解锁' : '已解锁'}</div></div>${priceBlock}<p class="desc" style="font-size:11px;"> 来源：${escHtml(quizBanks[item.quizId]?.source||"标准化量表")} | ${quizBanks[item.quizId]?.questions.length||0} 题</p>
+                <article class="list-card vip ${sel}" onclick="${cardOnClick}"><div class="split" style="align-items:flex-start;"><div><h3 class="item-title">${escHtml(item.name)} ${locked ? '🔒' : '✅'}</h3><p class="desc">${escHtml(item.desc)}</p></div><div class="status-badge ${vip?'active':(remaining>0?'active':'vip')}">${statusText}</div></div>${priceBlock}<p class="desc" style="font-size:11px;"> 来源：${escHtml(quizBanks[item.quizId]?.source||"标准化量表")} | ${quizBanks[item.quizId]?.questions.length||0} 题</p>
                 <div class="action-row" style="margin-top:10px;"><button class="${btnClass}" onclick="event.stopPropagation();${onClick}">${btnText}</button><button class="small-btn" onclick="event.stopPropagation();window.__previewQuiz('${item.quizId}')">预览题目</button></div></article>`;
             }).join("");
+
+            // 顶部展示免费配额提示
+            const hint = document.getElementById('freeTestQuotaHint');
+            if (hint && !vip) {
+                if (remaining > 0) {
+                    hint.innerHTML = `<div style="padding:12px 14px;background:rgba(193,149,111,0.08);border-radius:10px;margin-bottom:12px;border:1px solid rgba(193,149,111,0.25);"><p style="font-size:12px;margin:0;color:var(--gold-deep, #8a664b);">🎁 注册赠送 <strong>2</strong> 次免费测评机会（三套题中可任意选择 ${2} 次）。已使用 <strong style="color:var(--gold-deep);">${usedCount}</strong> 次，剩余 <strong style="color:#597363;">${remaining}</strong> 次。重做同一量表也会消耗一次机会。</p></div>`;
+                    hint.style.display = '';
+                } else {
+                    hint.innerHTML = `<div style="padding:12px 14px;background:rgba(255,180,60,0.08);border-radius:10px;margin-bottom:12px;border:1px solid rgba(255,180,60,0.25);"><p style="font-size:12px;margin:0;color:#c1956f;">⚠️ 您的免费测评次数已用完（${usedCount}/2）。可购买单次或开通会员继续使用。已做过的题目结果可在「我的报告」中查看。</p></div>`;
+                    hint.style.display = '';
+                }
+            } else if (hint) {
+                hint.style.display = 'none';
+            }
         }
 
         window.__previewQuiz = function(quizId) {
@@ -6321,28 +6373,42 @@
             state.quizInProgress = null;
             const savedAnswers = { ...state._quizAnswers };
             state._quizAnswers = {};
-            if (isVip()) {
-                const report = {
-                    id: 'r' + Date.now(),
-                    type: 'single',
-                    title: qb.name + ' 测评报告',
-                    date: fmtTime(Date.now()).split(' ')[0],
+
+            // 生成报告：免费版也保存基础文字报告（不含声纹/微表情）
+            const report = {
+                id: 'r' + Date.now(),
+                type: 'single',
+                title: qb.name + ' 测评报告',
+                date: fmtTime(Date.now()).split(' ')[0],
+                score: sum,
+                summary: threshold.advice,
+                quiz: qb.name,
+                questions: qb.questions.length,
+                severity: threshold.label,
+                severityColor: threshold.color,
+                questionDetails: questionDetails,
+                details: {
+                    scoreBreakdown: ` 每题得分：${questionDetails.map(d=>d.score).join('、')} = 总分 ${sum}/${qb.questions.length * 3}`,
+                    interpretation: ` 根据${qb.name}评估标准，您处于${threshold.label}（${sum}分）。该量表共${qb.questions.length}题，每题0-3分，总分${qb.questions.length*3}分。`,
+                    recommendation: threshold.advice
+                },
+                isFreeReport: !isVip()
+            };
+            state.reports = state.reports || [];
+            state.reports.unshift(report);
+
+            // 记录免费用户的使用次数与历史
+            if (!isVip()) {
+                state.freeTestUsed = (state.freeTestUsed || 0) + 1;
+                state.freeTestHistory = state.freeTestHistory || [];
+                state.freeTestHistory.unshift({
+                    quizId: quizId,
+                    quizName: qb.name,
                     score: sum,
-                    summary: threshold.advice,
-                    quiz: qb.name,
-                    questions: qb.questions.length,
                     severity: threshold.label,
-                    severityColor: threshold.color,
-                    questionDetails: questionDetails,
-                    details: {
-                        scoreBreakdown: ` 每题得分：${questionDetails.map(d=>d.score).join('、')} = 总分 ${sum}/${qb.questions.length * 3}`,
-                        interpretation: ` 根据${qb.name}评估标准，您处于${threshold.label}（${sum}分）。该量表共${qb.questions.length}题，每题0-3分，总分${qb.questions.length*3}分。`,
-                        recommendation: threshold.advice
-                    }
-                };
-                state.reports = state.reports || [];
-                state.reports.unshift(report);
-                saveState();
+                    reportId: report.id,
+                    ts: Date.now()
+                });
             }
             saveState();
             openPage("quiz-result");
@@ -6356,29 +6422,55 @@
                     <p style="font-size:11px;color:var(--theme-text-soft, var(--ink-soft));margin:6px 0 0;">${escHtml(d.analysis)}</p>
                 </div>
             `).join('');
+
+            const usedCount = state.freeTestUsed || 0;
+            const remaining = Math.max(0, 2 - usedCount);
+            let freeQuotaNotice = '';
+            if (!isVip()) {
+                if (remaining > 0) {
+                    freeQuotaNotice = `<div style="margin-top:14px;padding:12px;background:rgba(193,149,111,0.10);border-radius:10px;border:1px solid rgba(193,149,111,0.25);"><p style="font-size:12px;margin:0;color:var(--gold-deep, #8a664b);">📌 您已使用免费测评 ${usedCount}/2 次，剩余 <strong>${remaining}</strong> 次。重做同一量表也会消耗一次机会。历史结果可在「我的报告」中找到。</p></div>`;
+                } else {
+                    freeQuotaNotice = `<div style="margin-top:14px;padding:12px;background:rgba(255,180,60,0.10);border-radius:10px;border:1px solid rgba(255,180,60,0.25);"><p style="font-size:12px;margin:0;color:#c1956f;">📌 您的免费测评次数已用完（${usedCount}/2）。想再次测评可购买单次或开通会员。本量表历史结果可在「我的报告」查看。</p></div>`;
+                }
+            }
+
             document.getElementById("quizResultWrap").innerHTML = `
             <div class="detail-block" style="text-align:center;"><div style="font-size:50px;margin-bottom:8px;">📋</div><h3 class="detail-title">${escHtml(qb.name)}</h3><p class="desc">测评完成</p></div>
             <div class="detail-block section" style="text-align:center;"><div style="font-size:48px;font-weight:700;color:${threshold.color};font-family:var(--font-title);">${sum}分</div><div style="font-size:18px;font-weight:700;color:${threshold.color};margin-top:4px;">${threshold.label}</div><p class="desc" style="margin-top:10px;">${escHtml(threshold.advice)}</p></div>
             <div class="detail-block section"><h4 class="section-title">📊逐题得分明细</h4><div class="detail-list">${resultQDetailsHtml}</div></div>
             <div class="detail-block section"><div class="detail-list"><div class="detail-item"><strong> 评分说明</strong>总分范围：0-${qb.questions.length*3}分，每题0-3分。${qb.thresholds.map(t=>`${t.min}-${t.max}分：${t.label}`).join("；")}。</div><div class="detail-item"><strong>  量表来源</strong>${escHtml(qb.source)}</div></div></div>
-            <div class="action-row section"><button class="action-btn" onclick="window.__openScreen('home')"> 返回首页</button>${isVip() ? `<button class="small-btn" onclick="window.__openScreen('reports')">查看报告</button>` : ''}<button class="small-btn" onclick="window.__openScreen('service')">  查看更多测评</button></div>`;
+            ${freeQuotaNotice}
+            <div class="action-row section"><button class="action-btn" onclick="window.__openScreen('home')"> 返回首页</button><button class="small-btn" onclick="window.__openScreen('reports')">查看报告</button><button class="small-btn" onclick="window.__openScreen('service')">  查看更多测评</button></div>`;
             renderVipBadge();
             updateVipUI();
         }
 
-        function saveCustomAgent() { const id = `custom-${Date.now()}`; const b = state.builder;
-            state.customAgents.unshift({ id, tier: "free", name: ` 自建·${b.face}`, desc: `${b.style} · ${b.support} · 免费创建`,
-                tags: [b.face, b.style, "自建免费"], style: ` 偏${b.style}的回应方式，主要面向${b.support}场景。`,
-                rights: "免费查看详情，免费开始聊天。", opening: ` 你好，我会用${b.style}的方式陪你把现在的感受慢慢说出来。`,
-                personality: [b.face, b.style, b.memory], theme: "bamboo",
-                sampleDialogue: [{ user: "我有点迷茫。", ai: ` 迷茫的时候，我们可以先不急着找方向，先感受一下此刻的呼吸。` }]
+        function saveCustomAgent() {
+            const b = state.builder;
+            const defaultName = `自建·${b.face}`;
+            showNamePrompt({
+                title: '为智能体起个名字',
+                copy: '这个名字会显示在「我的智能体」列表中，方便你快速找到它。',
+                defaultValue: defaultName,
+                max: 12,
+                onConfirm: (trimmedName) => {
+                    const id = `custom-${Date.now()}`;
+                    state.customAgents.unshift({ id, tier: "free", name: trimmedName, desc: `${b.style} · ${b.support} · 免费创建`,
+                        tags: [b.face, b.style, "自建免费"], style: `偏${b.style}的回应方式，主要面向${b.support}场景。`,
+                        rights: "免费查看详情，免费开始聊天。", opening: `你好，我会用${b.style}的方式陪你把现在的感受慢慢说出来。`,
+                        personality: [b.face, b.style, b.memory], theme: "bamboo",
+                        sampleDialogue: [{ user: "我有点迷茫。", ai: `迷茫的时候，我们可以先不急着找方向，先感受一下此刻的呼吸。` }]
+                    });
+                    saveState();
+                    renderAgents();
+                    renderProfile();
+                    showModal({ title: "自建智能体已保存", copy: `「${trimmedName}」已加入免费基础智能体区。`, actions: [{ label: "继续编辑", type: "secondary",
+                            onClick: closeModal }, { label: "查看智能体", type: "primary", onClick: () => { closeModal();
+                                openPage("agents"); } }] });
+                },
+                onCancel: () => { /* 用户取消，不做处理 */ }
             });
-            saveState();
-            renderAgents();
-            renderProfile();
-            showModal({ title: "自建智能体已保存", copy: "你的专属智能体已加入免费基础智能体区。", actions: [{ label: "继续编辑", type: "secondary",
-                    onClick: closeModal }, { label: "查看智能体", type: "primary", onClick: () => { closeModal();
-                        openPage("agents"); } }] }); }
+        }
 
         function clearLocalData() { showModal({ title: "清理本地历史", copy: "确认清理当前浏览器内保存的所有数据？", actions: [{ label: "取消",
                     type: "secondary", onClick: closeModal }, { label: "确认清理", type: "primary", onClick: () => {
@@ -6488,6 +6580,69 @@
             overlay.classList.add("show"); }
 
         function closeModal() { overlay.classList.remove("show"); }
+
+        function showNamePrompt({ title, copy, defaultValue, max, onConfirm, onCancel }) {
+            modalTitle.textContent = title || '请输入名字';
+            modalCopy.innerHTML = copy || '';
+            modalFooter.innerHTML = "";
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'margin:8px 0 18px;text-align:left;';
+            const label = document.createElement('div');
+            label.style.cssText = 'font-size:12px;color:var(--theme-text-soft, var(--ink-soft));margin-bottom:6px;';
+            label.textContent = '智能体名字';
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = defaultValue || '';
+            input.maxLength = max || 12;
+            input.placeholder = '请输入 2-12 个字';
+            input.style.cssText = 'width:100%;padding:12px 14px;font-size:15px;border:1.5px solid var(--theme-border, rgba(118,110,96,0.18));border-radius:10px;background:var(--paper-strong);color:var(--ink);outline:none;font-family:inherit;box-sizing:border-box;transition:border-color 0.2s;';
+            input.onfocus = () => { input.style.borderColor = 'var(--theme-primary, #789785)'; };
+            input.onblur = () => { input.style.borderColor = 'var(--theme-border, rgba(118,110,96,0.18))'; };
+            const counter = document.createElement('div');
+            counter.style.cssText = 'font-size:11px;color:var(--theme-text-soft, var(--ink-soft));margin-top:6px;text-align:right;';
+            const updateCounter = () => { counter.textContent = `${input.value.length}/${max || 12} 字`; };
+            input.addEventListener('input', updateCounter);
+            updateCounter();
+            wrap.appendChild(label);
+            wrap.appendChild(input);
+            wrap.appendChild(counter);
+            modalCopy.parentNode.insertBefore(wrap, modalCopy.nextSibling);
+            setTimeout(() => { input.focus(); input.select(); }, 60);
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'action-btn secondary';
+            cancelBtn.textContent = '取消';
+            cancelBtn.onclick = () => {
+                wrap.remove();
+                closeModal();
+                if (onCancel) onCancel();
+            };
+            const confirmBtn = document.createElement('button');
+            confirmBtn.className = 'action-btn primary';
+            confirmBtn.textContent = '确定';
+            confirmBtn.onclick = () => {
+                const val = input.value.trim();
+                if (val.length < 2) {
+                    input.style.borderColor = '#c0392b';
+                    showToast('名字至少 2 个字');
+                    return;
+                }
+                if (val.length > (max || 12)) {
+                    input.style.borderColor = '#c0392b';
+                    showToast(`名字最多 ${max || 12} 个字`);
+                    return;
+                }
+                wrap.remove();
+                closeModal();
+                if (onConfirm) onConfirm(val);
+            };
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); confirmBtn.click(); }
+                else if (e.key === 'Escape') { e.preventDefault(); cancelBtn.click(); }
+            };
+            modalFooter.appendChild(cancelBtn);
+            modalFooter.appendChild(confirmBtn);
+            overlay.classList.add('show');
+        }
 
         function showToast(text) { toast.textContent = text;
             toast.classList.add("show");

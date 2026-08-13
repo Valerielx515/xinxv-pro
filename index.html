@@ -6002,7 +6002,7 @@
             document.getElementById("testList").innerHTML = tests.map(item => {
                 const sel = state.selectedTestId === item.id ? "selected-card" : "";
                 const locked = !vip && remaining <= 0;
-                const btnText = vip ? '立即测评' : (remaining > 0 ? `免费测评 (剩${remaining}/2)` : '🔒 次数已用完');
+                const btnText = vip ? '立即测评' : (remaining > 0 ? '免费测评' : '🔒 次数已用完');
                 const btnClass = locked ? 'small-btn locked' : 'small-btn primary';
                 const onClick = locked ? `window.__openServiceWithAnchor()` :
                     `window.__startQuiz('${item.quizId}')`;
@@ -6010,22 +6010,22 @@
                 const priceBlock = vip
                     ? `<div class="price-line"><strong style="color:#597363;">¥0</strong><span style="text-decoration:line-through;color:var(--theme-text-soft, var(--ink-soft));margin-left:6px;">¥${item.price}</span><span style="margin-left:4px;color:#597363;font-weight:700;">会员免费</span></div>`
                     : (remaining > 0
-                        ? `<div class="price-line"><strong style="color:#597363;">免费</strong><span style="margin-left:4px;color:var(--theme-text-soft, var(--ink-soft));font-size:12px;">（已用 ${usedCount}/2 次）</span></div>`
+                        ? `<div class="price-line"><strong style="color:#597363;">¥0</strong><span style="text-decoration:line-through;color:var(--theme-text-soft, var(--ink-soft));margin-left:6px;">¥${item.price}</span><span style="margin-left:4px;color:#597363;font-weight:700;">限免</span></div>`
                         : `<div class="price-line"><strong>¥${item.price}</strong><span>/ 套</span></div>`);
-                const statusText = vip ? '已解锁' : (remaining > 0 ? `免费 ${remaining}/2` : '需购买');
+                const statusText = vip ? '已解锁' : (remaining > 0 ? '限免' : '需购买');
                 return `
                 <article class="list-card vip ${sel}" onclick="${cardOnClick}"><div class="split" style="align-items:flex-start;"><div><h3 class="item-title">${escHtml(item.name)} ${locked ? '🔒' : '✅'}</h3><p class="desc">${escHtml(item.desc)}</p></div><div class="status-badge ${vip?'active':(remaining>0?'active':'vip')}">${statusText}</div></div>${priceBlock}<p class="desc" style="font-size:11px;"> 来源：${escHtml(quizBanks[item.quizId]?.source||"标准化量表")} | ${quizBanks[item.quizId]?.questions.length||0} 题</p>
                 <div class="action-row" style="margin-top:10px;"><button class="${btnClass}" onclick="event.stopPropagation();${onClick}">${btnText}</button><button class="small-btn" onclick="event.stopPropagation();window.__previewQuiz('${item.quizId}')">预览题目</button></div></article>`;
             }).join("");
 
-            // 顶部展示免费配额提示
+            // 顶部展示免费配额提示（全局唯一，避免每张卡片都显示造成歧义）
             const hint = document.getElementById('freeTestQuotaHint');
             if (hint && !vip) {
                 if (remaining > 0) {
-                    hint.innerHTML = `<div style="padding:12px 14px;background:rgba(193,149,111,0.08);border-radius:10px;margin-bottom:12px;border:1px solid rgba(193,149,111,0.25);"><p style="font-size:12px;margin:0;color:var(--gold-deep, #8a664b);">🎁 注册赠送 <strong>2</strong> 次免费测评机会（三套题中可任意选择 ${2} 次）。已使用 <strong style="color:var(--gold-deep);">${usedCount}</strong> 次，剩余 <strong style="color:#597363;">${remaining}</strong> 次。重做同一量表也会消耗一次机会。</p></div>`;
+                    hint.innerHTML = `<div style="padding:12px 14px;background:rgba(193,149,111,0.08);border-radius:10px;margin-bottom:12px;border:1px solid rgba(193,149,111,0.25);"><p style="font-size:12px;margin:0;color:var(--gold-deep, #8a664b);">🎁 注册赠送 <strong>2</strong> 次免费测评机会，以下三套题合计共可做 <strong>2</strong> 次。已用 <strong style="color:var(--gold-deep);">${usedCount}</strong> 次，剩余 <strong style="color:#597363;">${remaining}</strong> 次。重复做同一套也会消耗次数。</p></div>`;
                     hint.style.display = '';
                 } else {
-                    hint.innerHTML = `<div style="padding:12px 14px;background:rgba(255,180,60,0.08);border-radius:10px;margin-bottom:12px;border:1px solid rgba(255,180,60,0.25);"><p style="font-size:12px;margin:0;color:#c1956f;">⚠️ 您的免费测评次数已用完（${usedCount}/2）。可购买单次或开通会员继续使用。已做过的题目结果可在「我的报告」中查看。</p></div>`;
+                    hint.innerHTML = `<div style="padding:12px 14px;background:rgba(255,180,60,0.08);border-radius:10px;margin-bottom:12px;border:1px solid rgba(255,180,60,0.25);"><p style="font-size:12px;margin:0;color:#c1956f;">⚠️ 您的免费测评次数已用完（共 2 次）。可购买单次或开通会员继续使用。已做过的题目结果可在「我的报告」中查看。</p></div>`;
                     hint.style.display = '';
                 }
             } else if (hint) {
@@ -6056,18 +6056,21 @@
                 `;
             }
             if (!vip && qb.questions.length > 2) {
+                const used = state.freeTestUsed || 0;
+                const remaining = Math.max(0, 2 - used);
                 html += `
-                    <div class="card" style="text-align:center;padding:16px;background:rgba(255,200,0,0.06);border-color:rgba(255,200,0,0.2);">
-                        <p style="font-size:13px;color:var(--theme-text-soft);">🔒 剩余 ${qb.questions.length - 2}  道题目已隐藏</p>
-                        <p style="font-size:12px;color:var(--theme-text-soft);">完整测评需开通会员</p>
-                        <button class="action-btn vip" style="margin-top:10px;" onclick="window.__openServiceWithAnchor()">查看会员方案</button>
+                    <div class="card" style="text-align:center;padding:16px;background:rgba(193,149,111,0.06);border-color:rgba(193,149,111,0.2);">
+                        <p style="font-size:13px;color:var(--theme-text-soft);">📄 完整测评共 ${qb.questions.length} 道题目，此处仅预览前 2 道</p>
+                        <p style="font-size:12px;color:var(--theme-text-soft);">${remaining > 0 ? `您还有 ${remaining} 次免费测评机会，可直接开始完整答题` : '您的免费测评次数已用完，可购买单次或开通会员'}</p>
                     </div>
                 `;
             }
+            const previewUsed = state.freeTestUsed || 0;
+            const previewRemaining = Math.max(0, 2 - previewUsed);
             html += `</div>
                 <div class="action-row section">
                     <button class="action-btn secondary" onclick="window.__goBack()">返回</button>
-                    ${vip ? `<button class="action-btn" onclick="window.__startQuiz('${quizId}')">  开始答题</button>` : ''}
+                    ${vip || previewRemaining > 0 ? `<button class="action-btn" onclick="window.__startQuiz('${quizId}')">开始答题</button>` : ''}
                 </div>
             `;
             document.getElementById('quizWrap').innerHTML = html;
@@ -6428,9 +6431,9 @@
             let freeQuotaNotice = '';
             if (!isVip()) {
                 if (remaining > 0) {
-                    freeQuotaNotice = `<div style="margin-top:14px;padding:12px;background:rgba(193,149,111,0.10);border-radius:10px;border:1px solid rgba(193,149,111,0.25);"><p style="font-size:12px;margin:0;color:var(--gold-deep, #8a664b);">📌 您已使用免费测评 ${usedCount}/2 次，剩余 <strong>${remaining}</strong> 次。重做同一量表也会消耗一次机会。历史结果可在「我的报告」中找到。</p></div>`;
+                    freeQuotaNotice = `<div style="margin-top:14px;padding:12px;background:rgba(193,149,111,0.10);border-radius:10px;border:1px solid rgba(193,149,111,0.25);"><p style="font-size:12px;margin:0;color:var(--gold-deep, #8a664b);">📌 本次测评已消耗 1 次免费机会。您共赠送 <strong>2</strong> 次，已用 <strong>${usedCount}</strong> 次，剩余 <strong>${remaining}</strong> 次。历史结果可在「我的报告」中查看。</p></div>`;
                 } else {
-                    freeQuotaNotice = `<div style="margin-top:14px;padding:12px;background:rgba(255,180,60,0.10);border-radius:10px;border:1px solid rgba(255,180,60,0.25);"><p style="font-size:12px;margin:0;color:#c1956f;">📌 您的免费测评次数已用完（${usedCount}/2）。想再次测评可购买单次或开通会员。本量表历史结果可在「我的报告」查看。</p></div>`;
+                    freeQuotaNotice = `<div style="margin-top:14px;padding:12px;background:rgba(255,180,60,0.10);border-radius:10px;border:1px solid rgba(255,180,60,0.25);"><p style="font-size:12px;margin:0;color:#c1956f;">📌 您的 <strong>2</strong> 次免费测评机会已全部用完。想再次测评可购买单次或开通会员。本量表历史结果可在「我的报告」查看。</p></div>`;
                 }
             }
 
@@ -6695,7 +6698,14 @@
         window.__answerQuiz = (qIdx, score, el) => answerQuiz(qIdx, score, el);
         window.__submitQuiz = (quizId) => submitQuiz(quizId);
         window.__startQuiz = (quizId) => {
-            if (!isVip()) { showVipRequiredModal("测评答题"); return; }
+            if (!isVip()) {
+                const used = state.freeTestUsed || 0;
+                const remaining = 2 - used;
+                if (remaining <= 0) {
+                    showVipRequiredModal("测评答题");
+                    return;
+                }
+            }
             state.quizInProgress = quizId;
             state._quizAnswers = {};
             saveState();
